@@ -63,7 +63,7 @@ export const constantRoutes = [
       {
         path: 'index',
         name: '收入',
-        component: () => import('@/views/form/income'),
+        component: () => import('@/views/form/income2'),
         meta: { title: '收入', icon: 'form' }
       }
     ]
@@ -75,7 +75,7 @@ export const constantRoutes = [
       {
         path: 'index',
         name: '支出',
-        component: () => import('@/views/form/index'),
+        component: () => import('@/views/form/outcome'),
         meta: { title: '支出', icon: 'form' }
       }
     ]
