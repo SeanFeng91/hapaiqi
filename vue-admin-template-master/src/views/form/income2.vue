@@ -26,7 +26,7 @@
           <span>{{ scope.row.MoneyAmount }}</span>
         </div>
         <div v-else>
-          <el-input v-model="scope.row.name" placeholder="请填金额"></el-input>
+          <el-input v-model="scope.row.MoneyAmount" placeholder="请填金额"></el-input>
         </div>
       </template>
     </el-table-column>
