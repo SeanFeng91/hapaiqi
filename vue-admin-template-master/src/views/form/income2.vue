@@ -27,16 +27,20 @@
       </div>
 
   <el-table
-
     :data="tableData"
     border
-    :summary-method="getSummaries"
     show-summary
+    :summary-method="getSummaries"
     style="width: 100%"
-    @filter-change="handleFilterChange">
+    @filter-change="handleFilterChange"
+    :default-sort = "{prop: 'date', order: 'ascending'}"
+    >
     <el-table-column
     label="日期"
-    align="center">
+    prop="date"
+    sortable
+    align="center"
+    >
     <template slot-scope="scope">
       <!-- <div class="block"> -->
         <div v-if="!scope.row.editing">
@@ -47,7 +51,7 @@
           <el-date-picker
             v-model="scope.row.Datetime"
             type="date"
-            sortable
+
             placeholder="选择日期时间"
             format="yyyy-MM-dd"
             value-format="yyyy-MM-dd">
@@ -59,7 +63,8 @@
     <el-table-column
       label="金额"
       align="center"
-      width="150">
+      width="150"
+      prop="MoneyAmount">
       <template slot-scope="scope">
         <div v-if="!scope.row.editing">
           <span>{{ scope.row.MoneyAmount }}</span>
@@ -238,9 +243,7 @@
           text: '招商银行',
           value: '招商银行'
         }],
-        value1: '',
-        value2: '',
-        value3: ''
+        value1: ''
 
       }
     },
@@ -271,14 +274,20 @@
         const property = column['property'];
         return row[property] === value;
       },
+      //限制字母输入
+      tonumbers(){
+        this.value=this.value.replace(/[^\d.]/g,'')
+      },
       // 编辑
       handleEdit ($index, row) {
         this.$set(this.tableData[$index], 'editing', true)
       },
       // 保存
       handleSave ($index, row) {
+        row.MoneyAmount=row.MoneyAmount.replace(/[^\d.]/g,'')
         this.$set(this.tableData[$index], 'editing', false)
         localStorage.setItem('tableData', JSON.stringify(this.tableData))
+        console.log(row.MoneyAmount)
       },
       // 取消
       handleCancel ($index, row) {
@@ -317,18 +326,19 @@
 	    })
 	  },
     getSummaries(param) {
+
             const { columns, data } = param;
             const sums = [];
             columns.forEach((column, index) => {
               if (index === 0) {
-                sums[index] = '总价';
+                sums[index] = '总收入';
                 return;
               }
               const values = data.map(item => Number(item[column.property]));
-              if (index === 1) {  //!values.every(value => isNaN(value))
+              if (index === 1) {
                 sums[index] = values.reduce((prev, curr) => {
                   const value = Number(curr);
-                  console.log(column)
+
                   if (!isNaN(value)) {
                     return prev + curr;
                   } else {
@@ -342,6 +352,7 @@
             });
 
             return sums;
+
     }
 
     }
