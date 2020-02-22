@@ -82,24 +82,25 @@ export const constantRoutes = [
   },
 
   {
-    path: '/example',
+    path: '/investment',
     component: Layout,
-    redirect: '/example/table',
+    redirect: '/investment/stocks',
     name: 'Example',
-    meta: { title: '投资', icon: 'example' },
+    meta: { title: '投资', icon: 'investment' },
     children: [
       {
-        path: 'table',
-        name: 'Table',
-        component: () => import('@/views/table/index'),
-        meta: { title: '基金', icon: 'table' }
+        path: 'stocks',
+        name: 'Stocks',
+        component: () => import('@/views/form/stockposition'),
+        meta: { title: '股票', icon: 'stocks-up' }
       },
       {
-        path: 'tree',
-        name: 'Tree',
+        path: 'funds',
+        name: 'Funds',
         component: () => import('@/views/table/index'),
-        meta: { title: '股票', icon: 'table' }
+        meta: { title: '基金', icon: 'funds' }
       }
+
     ]
   },
 

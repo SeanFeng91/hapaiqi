@@ -360,6 +360,12 @@ export default {
               return prev;
             }
           }, 0);
+          // TO DO
+          // for dashboard use only
+          // 此处存在本地数据没有保存在服务器
+          // 得到总支出：
+          // const totalIncome = localStorage.getItem("totalIncome")
+          localStorage.setItem("totalIncome", sums[index]);
           sums[index] = Number(sums[index]).toFixed(2);
           sums[index] += " 元";
         } else {
