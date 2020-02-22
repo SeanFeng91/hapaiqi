@@ -1,38 +1,89 @@
 <template>
   <div class="template-manage">
 
-      <div class="temp-title">
+      <div
+      class="temp-title"
+      align="right"
+      >
+      <!--
         <p class="icon-box">
-          <!-- <img class="icon-img" src="@/assets/images/set.svg" /> -->
+          <!-- <img class="icon-img" src="@/assets/images/set.svg" />
           <span class="name">模板管理</span>
         </p>
+        -->
         <el-button
           size="small"
           type="primary"
           icon="el-icon-circle-plus-outline"
-          @click="addTemp">新增模板</el-button>
+          @click="addTemp">新增收入</el-button>
+          <el-button
+          size="small"
+          type="primary"
+          @click="resetDateFilter">清除日期过滤器</el-button>
+          <el-button
+          size="small"
+          type="primary"
+          @click="clearFilter">清除所有过滤器</el-button>
       </div>
-  <el-button @click="resetDateFilter">清除日期过滤器</el-button>
-  <el-button @click="clearFilter">清除所有过滤器</el-button>
+
   <el-table
-    ref="filterTable"
+
     :data="tableData"
-    style="width: 100%">
+    border
+    :summary-method="getSummaries"
+    show-summary
+    style="width: 100%"
+    @filter-change="handleFilterChange">
+    <el-table-column
+    label="日期"
+    align="center">
+    <template slot-scope="scope">
+      <!-- <div class="block"> -->
+        <div v-if="!scope.row.editing">
+          <span>{{ scope.row.Datetime }}</span>
+        </div>
+        <div v-else>
+          <!-- <span class="demonstration">默认</span> -->
+          <el-date-picker
+            v-model="scope.row.Datetime"
+            type="date"
+            sortable
+            placeholder="选择日期时间"
+            format="yyyy-MM-dd"
+            value-format="yyyy-MM-dd">
+          </el-date-picker>
+        </div>
+    </template>
+    </el-table-column>
 
     <el-table-column
-      label="金额">
+      label="金额"
+      align="center"
+      width="150">
       <template slot-scope="scope">
         <div v-if="!scope.row.editing">
           <span>{{ scope.row.MoneyAmount }}</span>
         </div>
         <div v-else>
-          <el-input v-model="scope.row.MoneyAmount" placeholder="请填金额"></el-input>
+          <el-input
+          v-model="scope.row.MoneyAmount"
+          placeholder="请填金额"
+          onkeyup="this.value=this.value.replace(/[^\d.]/g,'');"
+          maxlength="9"></el-input>
         </div>
       </template>
     </el-table-column>
 
     <el-table-column
-      label="类别">
+      label="类别"
+      align="center"
+      width="150"
+      prop="Categoary"
+      column-key="Categoary"
+      :filters="consumeType"
+      :filter-method="filterCategoary"
+      :filter-multiple="false"
+      filter-placement="bottom-end">
       <template slot-scope="scope">
         <div v-if="!scope.row.editing">
           <span>{{ scope.row.Categoary }}</span>
@@ -50,33 +101,51 @@
       </template>
     </el-table-column>
 
+
+<!-- :filter-method="filterTag"  -->
     <el-table-column
-      prop="Datetime"
-      label="日期"
-      sortable
-      width="180"
-      column-key="date"
-      :filters="[{text: '2016-05-01', value: '2016-05-01'}, {text: '2016-05-02', value: '2016-05-02'}, {text: '2016-05-03', value: '2016-05-03'}, {text: '2016-05-04', value: '2016-05-04'}]"
-      :filter-method="filterHandler"
-    >
+      label="标签"
+      prop="Tag"
+      align="center"
+      width="150"
+      column-key='Tag'
+      :filters="AccountType"
+      :filter-method="filterTag"
+      :filter-multiple="false"
+      filter-placement="bottom-end">
+      <template slot-scope="scope">
+        <div v-if="!scope.row.editing">
+          <span>{{ scope.row.Tag }}</span>
+        </div>
+        <div v-else>
+          <el-select v-model="scope.row.Tag" placeholder="标签">
+            <el-option
+              v-for="item in AccountType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </div>
+      </template>
     </el-table-column>
 
-
-    <el-table-column
+   <!-- <el-table-column
       prop="Tag"
       label="标签"
-      width="100"
+      width="150"
       :filters="[{ text: '中国银行', value: '中国银行' }, { text: '建设银行', value: '建设银行' }]"
       :filter-method="filterTag"
       filter-placement="bottom-end">
       <template slot-scope="scope">
         <el-tag
-          :type="scope.row.Tag === '家' ? 'primary' : 'success'"
+          :type="scope.row.Tag === '中国银行' ? 'primary' : 'success'"
           disable-transitions>{{scope.row.Tag}}</el-tag>
       </template>
-    </el-table-column>
+    </el-table-column> -->
     <el-table-column
-      label="操作">
+      label="操作"
+      align="center">
       <template slot-scope="scope">
         <div class="operate-groups">
           <el-button
@@ -145,14 +214,34 @@
         }],
         consumeType: [{
           label: '食物',
+          text: '食物',
           value: '食物'
         }, {
           label: '娱乐',
+          text: '娱乐',
           value: '娱乐'
         }, {
           label: '水果',
+          text: '水果',
           value: '水果'
-        }]
+        }],
+        AccountType: [{
+          label: '中国银行',
+          text: '中国银行',
+          value: '中国银行'
+        }, {
+          label: '建设银行',
+          text: '建设银行',
+          value: '建设银行'
+        }, {
+          label: '招商银行',
+          text: '招商银行',
+          value: '招商银行'
+        }],
+        value1: '',
+        value2: '',
+        value3: ''
+
       }
     },
     created () {
@@ -165,11 +254,18 @@
       clearFilter() {
         this.$refs.filterTable.clearFilter();
       },
+      handleFilterChange(filters) {
+        console.log(filters);
+          console.log('筛选条件变化');
+      },
       formatter(row, column) {
         return row.address;
       },
       filterTag(value, row) {
-        return row.tag === value;
+        return row.Tag === value;
+      },
+      filterCategoary(value, row) {
+        return row.Categoary === value
       },
       filterHandler(value, row, column) {
         const property = column['property'];
@@ -197,9 +293,57 @@
           Categoary: '',
           Datetime: '',
           Tag:'',
-          editing: true
+          editing: true,
+          center: true
         })
-      }
+      },
+	  handleDelete ($index, row) {
+	    this.$confirm('此操作将永久删除该条模板, 是否继续?', '提示', {
+	      confirmButtonText: '确定',
+	      cancelButtonText: '取消',
+	      type: 'warning'
+	    }).then(() => {
+	      this.tableData.splice($index, 1)
+	      localStorage.setItem('tableData', JSON.stringify(this.tableData))
+	      this.$message({
+	        type: 'success',
+	        message: '删除成功!'
+	      })
+	    }).catch((err) => {
+	      this.$message({
+	        type: 'error',
+	        message: err
+	      })
+	    })
+	  },
+    getSummaries(param) {
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+              if (index === 0) {
+                sums[index] = '总价';
+                return;
+              }
+              const values = data.map(item => Number(item[column.property]));
+              if (index === 1) {  //!values.every(value => isNaN(value))
+                sums[index] = values.reduce((prev, curr) => {
+                  const value = Number(curr);
+                  console.log(column)
+                  if (!isNaN(value)) {
+                    return prev + curr;
+                  } else {
+                    return prev;
+                  }
+                }, 0);
+                sums[index] += ' 元';
+              } else {
+                sums[index] = '';
+              }
+            });
+
+            return sums;
+    }
+
     }
   }
 </script>
