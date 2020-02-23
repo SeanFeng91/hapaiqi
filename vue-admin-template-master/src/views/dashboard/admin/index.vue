@@ -54,7 +54,7 @@ import PanelGroup from './components/PanelGroup'
 // import PieChart from './components/PieChart'
 // import BarChart from './components/BarChart'
 // import TransactionTable from './components/TransactionTable'
-import TodoList from './components/TodoList'
+//import TodoList from './components/TodoList'
 // import BoxCard from './components/BoxCard'
 
 const lineChartData = {
@@ -86,7 +86,7 @@ export default {
     // PieChart,
     // BarChart,
     // TransactionTable,
-    TodoList,
+    //TodoList,
     // BoxCard
   },
   // data() {
