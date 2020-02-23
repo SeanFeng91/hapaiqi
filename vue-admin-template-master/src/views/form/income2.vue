@@ -1,12 +1,7 @@
 <template>
   <div class="template-manage">
     <div class="temp-title" align="right">
-      <!--
-        <p class="icon-box">
-          <!-- <img class="icon-img" src="@/assets/images/set.svg" />
-          <span class="name">模板管理</span>
-        </p>
-        -->
+
       <el-button
         size="small"
         type="primary"
@@ -14,24 +9,32 @@
         @click="addTemp"
         >新增收入</el-button
       >
-      <el-button size="small" type="primary" @click="resetDateFilter"
+
+      <!-- <el-button size="small" type="primary" @click="resetDateFilter"
         >清除日期过滤器</el-button
       >
+      -->
       <el-button size="small" type="primary" @click="clearFilter"
         >清除所有过滤器</el-button
       >
     </div>
 
     <el-table
-      :data="incomeTableData"
+      ref="filterTable"
+      :data="incomeTableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
       border
       show-summary
       :summary-method="getSummaries"
       style="width: 100%"
       @filter-change="handleFilterChange"
-      :default-sort="{ prop: 'date', order: 'ascending' }"
     >
-      <el-table-column label="日期" prop="date" sortable align="center">
+      <el-table-column
+        label="日期"
+        prop="Datetime"
+        :sortable="true"
+        :sort-method="sortByDate"
+        align="center"
+      >
         <template slot-scope="scope">
           <!-- <div class="block"> -->
           <div v-if="!scope.row.editing">
@@ -80,7 +83,7 @@
         column-key="Categoary"
         :filters="consumeType"
         :filter-method="filterCategoary"
-        :filter-multiple="false"
+        :filter-multiple="true"
         filter-placement="bottom-end"
       >
         <template slot-scope="scope">
@@ -101,7 +104,6 @@
         </template>
       </el-table-column>
 
-      <!-- :filter-method="filterTag"  -->
       <el-table-column
         label="标签"
         prop="Tag"
@@ -110,7 +112,7 @@
         column-key="Tag"
         :filters="AccountType"
         :filter-method="filterTag"
-        :filter-multiple="false"
+        :filter-multiple="true"
         filter-placement="bottom-end"
       >
         <template slot-scope="scope">
@@ -131,19 +133,6 @@
         </template>
       </el-table-column>
 
-      <!-- <el-table-column
-      prop="Tag"
-      label="标签"
-      width="150"
-      :filters="[{ text: '中国银行', value: '中国银行' }, { text: '建设银行', value: '建设银行' }]"
-      :filter-method="filterTag"
-      filter-placement="bottom-end">
-      <template slot-scope="scope">
-        <el-tag
-          :type="scope.row.Tag === '中国银行' ? 'primary' : 'success'"
-          disable-transitions>{{scope.row.Tag}}</el-tag>
-      </template>
-    </el-table-column> -->
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
           <div class="operate-groups">
@@ -201,6 +190,20 @@
         </template>
       </el-table-column>
     </el-table>
+    <div
+    class="paginationClass"
+    align="center"
+    >
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="currentPage"
+        :page-sizes="[5, 10, 20]"
+        :page-size="pagesize"
+        layout="total, sizes, prev, pager, next"
+        :total="incomeTableData.length">
+      </el-pagination>
+      </div>
   </div>
 </template>
 
@@ -208,13 +211,16 @@
 export default {
   data() {
     return {
+      total: 0,
+      currentPage:1,
+      pagesize:5,
       incomeTableData: [
-        {
-          MoneyAmount: "19.33",
-          Categoary: "食物",
-          Datetime: "2020-02-12",
-          Tag: "中国银行"
-        }
+        // {
+        //   MoneyAmount: "19.33",
+        //   Categoary: "食物",
+        //   Datetime: "2020-02-12",
+        //   Tag: "中国银行"
+        // }
       ],
       consumeType: [
         {
@@ -250,131 +256,196 @@ export default {
           value: "招商银行"
         }
       ],
-      value1: ""
-    };
+      value1: ''
+    }
   },
+  // computed:{
+  //   datedecending(param1, param2) {
+  //     return param1['Datetime'].localeCompare(param2['Datetime']);
+  //   },
+  // },
   created() {
-    this.incomeTableData = JSON.parse(localStorage.getItem("incomeTableData"));
+    this.incomeTableData = JSON.parse(localStorage.getItem("incomeTableData"))
   },
   methods: {
+// 初始页currentPage、初始每页数据数pagesize和数据data
+    handleSizeChange: function (sizes) {
+            this.pagesize = sizes;
+            console.log(this.pagesize)  //每页下拉显示数据
+    },
+    handleCurrentChange: function(currentPage){
+            this.currentPage = currentPage;
+            console.log(this.currentPage)  //点击第几页
+    },
+    // handleUserList() {
+    //     this.$http.get('http://localhost:3000/userList').then(res => {  //这是从本地请求的数据接口，
+    //         this.userList = res.body
+    //     })
+    // },
     resetDateFilter() {
-      this.$refs.filterTable.clearFilter("date");
+      this.$refs.filterTable.clearFilter("date")
     },
     clearFilter() {
-      this.$refs.filterTable.clearFilter();
+      this.$refs.filterTable.clearFilter()
     },
     handleFilterChange(filters) {
-      console.log(filters);
-      console.log("筛选条件变化");
+      console.log(filters)
+      console.log("筛选条件变化")
     },
     formatter(row, column) {
-      return row.address;
+      return row.address
     },
     filterTag(value, row) {
-      return row.Tag === value;
+      return row.Tag === value
     },
     filterCategoary(value, row) {
-      return row.Categoary === value;
+      console.log(value)
+      return row.Categoary === value
     },
     filterHandler(value, row, column) {
-      const property = column["property"];
-      return row[property] === value;
+      const property = column["property"]
+      return row[property] === value
     },
-    //限制字母输入
-    tonumbers() {
-      this.value = this.value.replace(/[^\d.]/g, "");
+    //日期排序
+    sortByDate(obj1, obj2) {
+          let val1 = obj1.Datetime
+          let val2 = obj2.Datetime
+          return val2 - val1
     },
+
     // 编辑
     handleEdit($index, row) {
-      this.$set(this.incomeTableData[$index], "editing", true);
+      this.$set(this.incomeTableData[$index], "editing", true)
     },
     // 保存
     handleSave($index, row) {
-      row.MoneyAmount = row.MoneyAmount.replace(/[^\d.]/g, "");
+      row.MoneyAmount = row.MoneyAmount.replace(/[^\d.]/g, "")
       const fn = str => {
-        return str.match(/^\d*\.?\d*$/) ? str.match(/^\d*\.?\d*$/)[0] : "0";
-      };
-      row.MoneyAmount = fn(row.MoneyAmount);
-      this.$set(this.incomeTableData[$index], "editing", false);
+        return str.match(/^\d*\.?\d*$/) ? str.match(/^\d*\.?\d*$/)[0] : "0"
+      }
+      row.MoneyAmount = fn(row.MoneyAmount)
+      this.$set(this.incomeTableData[$index], "editing", false)
       localStorage.setItem(
         "incomeTableData",
         JSON.stringify(this.incomeTableData)
-      );
+      )
+      //尝试保存的时候重新排序_失败
+      // this.incomeTableData = this.incomeTableData.sort((a, b) => b.Datetime - a.Datetime)
+      // console.log(this.incomeTableData[index])
     },
+    // changeTableSort(column){
+    //   console.log(column)
+    // },
     // 取消
     handleCancel($index, row) {
-      this.$set(this.incomeTableData[$index], "editing", false);
+      this.$set(this.incomeTableData[$index], 'editing', false)
     },
     // 新增一条模板数据
     addTemp() {
-      this.incomeTableData = this.incomeTableData || [];
-      this.incomeTableData.push({
-        MoneyAmount: "",
-        Categoary: "",
-        Datetime: "",
-        Tag: "",
+      this.incomeTableData = this.incomeTableData || []
+      // 当expr1 为true时，返回expr1；当expr1为false时，返回expr2
+      this.incomeTableData.unshift({
+        MoneyAmount: '0.00',
+        Categoary: '',
+        Datetime: '',
+        Tag: '',
         editing: true,
         center: true
-      });
+      })
+      this.total= res.incomeTableData.totalnum
+      console.log(total)
     },
     handleDelete($index, row) {
-      this.$confirm("此操作将永久删除该条模板, 是否继续?", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
+      this.$confirm('此操作将永久删除该条模板, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
       })
         .then(() => {
           this.incomeTableData.splice($index, 1);
           localStorage.setItem(
             "incomeTableData",
             JSON.stringify(this.incomeTableData)
-          );
+          )
           this.$message({
-            type: "success",
-            message: "删除成功!"
-          });
+            type: 'success',
+            message: '删除成功!'
+          })
         })
         .catch(err => {
           this.$message({
             type: "error",
             message: err
-          });
-        });
+          })
+        })
     },
     getSummaries(param) {
-      const { columns, data } = param;
-      const sums = [];
+      const { columns, data } = param
+      const sums = []
       columns.forEach((column, index) => {
         if (index === 0) {
-          sums[index] = "总收入";
-          return;
+          sums[index] = '总收入'
+          return
         }
-        const values = data.map(item => Number(item[column.property]));
+        const values = data.map(item => Number(item[column.property]))
         if (index === 1) {
           sums[index] = values.reduce((prev, curr) => {
-            const value = Number(curr);
+            const value = Number(curr)
 
             if (!isNaN(value)) {
-              return prev + curr;
+              return prev + curr
             } else {
-              return prev;
+              return prev
             }
-          }, 0);
+          }, 0)
           // TO DO
           // for dashboard use only
           // 此处存在本地数据没有保存在服务器
           // 得到总支出：
           // const totalIncome = localStorage.getItem("totalIncome")
-          localStorage.setItem("totalIncome", sums[index]);
-          sums[index] = Number(sums[index]).toFixed(2);
-          sums[index] += " 元";
+          localStorage.setItem('totalIncome', sums[index])
+          sums[index] = Number(sums[index]).toFixed(2)
+          sums[index] += (' 元')
         } else {
-          sums[index] = "";
+          sums[index] = ('')
         }
-      });
+      })
 
-      return sums;
-    }
+      return sums
+    },
+    //分页器
+    // handleSizeChange(val) {
+    //         console.log(`每页 ${val} 条`);
+    //       },
+    // handleCurrentChange(val) {
+    //         console.log(`当前页: ${val}`);
+    //       }
+    handleSizeChange1: function(pageSize) { // 每页条数切换
+            this.pageSize = pageSize
+            this.handleCurrentChange1(this.currentPage1);
+        },
+    handleCurrentChange1: function(currentPage) {//页码切换
+        this.currentPage1 = currentPage
+        this.currentChangePage(this.incomeTableData,currentPage)
+        },
+        //分页方法（重点）
+
+    current_change:function(currentPage){
+            this.currentPage = currentPage;
+          },
+
+
+    currentChangePage(list,currentPage) {
+          let from = (currentPage - 1) * this.pageSize;
+          let to = currentPage * this.pageSize;
+          this.incomeTableData = [];
+          for (; from < to; from++) {
+            if (list[from]) {
+              this.incomeTableData.push(list[from]);
+            }
+          }
+    },
+
   }
-};
+}
 </script>
