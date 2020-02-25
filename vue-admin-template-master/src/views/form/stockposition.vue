@@ -1,80 +1,56 @@
 <template>
   <div class="template-manage">
-    <div class="temp-title" align="center">
-      <!--
-        <p class="icon-box">
-          <!-- <img class="icon-img" src="@/assets/images/set.svg" />
-          <span class="name">模板管理</span>
-        </p>
-        -->
-      <el-button
-        size="small"
-        type="primary"
-        icon="el-icon-circle-plus-outline"
-        @click="addTemp"
-        >新增股票</el-button
-      >
-      <el-button size="small" type="primary" @click="resetDateFilter"
-        >清除日期过滤器</el-button
-      >
-      <el-button size="small" type="primary" @click="clearFilter"
-        >清除所有过滤器</el-button
-      >
-      <el-button size="small" type="primary" @click="centerDialogVisible = true" icon="el-icon-plus"> 新增 </el-button>
-    </div>
+    <!-- //创建对话会功能 -->
+    <el-dialog title="title" :visible.sync="centerDialogVisible" @close="closeDialogVisible" width="35%">
+		<el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="StockBuyIn_RuleForm">
+		  <el-form-item label="股票代码" prop="InputCode">
+        <el-input class="dialog-iput"
+          placeholder="请输入交易代码"
+          v-model="ruleForm.InputCode"
+          clearable>
+        </el-input>
+		  </el-form-item>
+      <el-form-item label="股票名称" prop="InputName">
+        <el-input
+      	placeholder="请输入股票名称"
+      	v-model="ruleForm.InputName"
+      	clearable>
+        </el-input>
+      </el-form-item>
+		  <el-form-item label="买入价格" prop="BuyInPrice">
+			  <el-input
+				placeholder="请输入买入价格"
+				v-model="ruleForm.BuyInPrice"
+				clearable>
+			  </el-input>
+		  </el-form-item>
+		  <el-form-item label="买入数量" prop="BuyInAmount">
+			  <el-input
+				placeholder="请输入购买数量"
+				v-model="ruleForm.BuyInAmount"
+				clearable>
+			  </el-input>
+		  </el-form-item>
+      <el-form-item label="买入日期" prop="BuyInDate">
+		  <el-date-picker
+        v-model="ruleForm.BuyInDate"
+        type="datetime"
+        placeholder="选择日期时间"
+        value-format="yyyy-MM-dd HH:mm:ss">
+		  </el-date-picker>
+      </el-form-item>
 
-    <el-dialog title="新增股票资产" :visible.sync="centerDialogVisible" width="35%">
-      <el-input class="dialog-iput"
-        placeholder="请输入代码"
-        v-model="inputCode"
-        clearable>
-      </el-input>
-      <el-input
-        placeholder="请输入名称"
-        v-model="inputName"
-        clearable>
-      </el-input>
-      <el-input
-        placeholder="请输入市价"
-        v-model="inputPrice"
-        clearable>
-      </el-input>
-      <el-input
-        placeholder="请输入成本"
-        v-model="inputCost"
-        clearable>
-      </el-input>
-      <el-input
-        placeholder="请输入持仓"
-        v-model="inputPosition"
-        clearable>
-      </el-input>
-
-      <el-dropdown>
-        <span class="el-dropdown-link">
-          类别<i class="el-icon-arrow-down el-icon--right"></i>
-        </span>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item v-for="item in Market"> {{ item.value }}</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
-
-      <el-dropdown>
-        <span class="el-dropdown-link">
-          标签<i class="el-icon-arrow-down el-icon--right"></i>
-        </span>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item v-for="item in AccountType"> {{ item.value }}</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
-
-      <el-button type="warning">重置</el-button>
-      <el-button type="primary" @click="dialogAddTemp">确认</el-button>
-      <el-button plain @click="centerDialogVisible = false">取消</el-button>
-
+      <el-form-item>
+        <el-button type="primary" @click="submitForm">确认</el-button>
+        <el-button plain @click="centerDialogVisible = false">取消</el-button>
+        <el-button @click="resetForm('ruleForm')">重置</el-button>
+      </el-form-item>
+		  <!-- <el-button type="warning">重置</el-button> -->
+		  <!-- <el-button type="primary" @click="dialogAddTemp">确认</el-button> -->
+		  <!-- <el-button plain @click="centerDialogVisible = false">取消</el-button> -->
+		</el-form>
     </el-dialog>
-
-  <!-- <el-form :rules="model.rules" ref="form"> -->
+    <!-- //表1：用于汇总股票投资后各指标数据，需要考虑增加历史数据标签页，用于记录清仓持仓为0的股票盈亏数据。 -->
     <el-table
       :data="stockPosition"
       border
@@ -150,14 +126,6 @@
         <template slot-scope="scope">
           <div v-if="!scope.row.editing">
             <span>{{ scope.row.Price }}</span>
-          </div>
-          <div v-else>
-            <el-input
-              v-model="scope.row.Price"
-              placeholder="请填价格"
-              onkeyup="this.value=this.value.replace(/[^\d.]/g,'');"
-              maxlength="15"
-            ></el-input>
           </div>
         </template>
       </el-table-column>
@@ -258,78 +226,82 @@
           </div>
         </template>
       </el-table-column>
-
-      <!-- <el-table-column
-      prop="Tag"
-      label="标签"
-      width="150"
-      :filters="[{ text: '中国银行', value: '中国银行' }, { text: '建设银行', value: '建设银行' }]"
-      :filter-method="filterTag"
-      filter-placement="bottom-end">
-      <template slot-scope="scope">
-        <el-tag
-          :type="scope.row.Tag === '中国银行' ? 'primary' : 'success'"
-          disable-transitions>{{scope.row.Tag}}</el-tag>
-      </template>
-    </el-table-column> -->
-      <el-table-column label="操作" align="center">
-        <template slot-scope="scope">
-          <div class="operate-groups">
-            <el-button
-              type="primary"
-              size="mini"
-              v-if="!scope.row.editing"
-              icon="el-icon-edit-outline"
-              @click="handleEdit(scope.$index, scope.row)"
-              >编辑
-            </el-button>
-            <el-button
-              type="primary"
-              size="mini"
-              v-if="scope.row.editing"
-              icon="el-icon-success"
-              @click="handleSave(scope.$index, scope.row)"
-              >保存
-            </el-button>
-            <el-button
-              size="mini"
-              type="danger"
-              v-if="!scope.row.editing"
-              icon="el-icon-delete"
-              @click="handleDelete(scope.$index, scope.row)"
-              >删除
-            </el-button>
-            <el-button
-              size="mini"
-              type="warning"
-              v-if="scope.row.editing"
-              icon="el-icon-warning"
-              @click="handleCancel(scope.$index, scope.row)"
-              >取消
-            </el-button>
-            <!-- <div class="upAndDown">
-            <el-button
-              plain
-              class="up"
-              type="primary"
-              size="mini"
-              icon="el-icon-arrow-up"
-              @click="handleUp(scope.$index, scope.row)">
-            </el-button>
-            <el-button
-              plain
-              class="down"
-              type="primary"
-              size="mini"
-              icon="el-icon-arrow-down"
-              @click="handleDown(scope.$index, scope.row)">
-            </el-button>
-          </div> -->
-          </div>
-        </template>
-      </el-table-column>
+<!-- 表1不建议保留编辑功能，需要输入信息全部来自表2，价格信息尝试自动获取接入 -->
     </el-table>
     <!-- </el-form> -->
+    <!-- //表2：用于录入历史交易信息，包括买入和卖出。 -->
+    <!-- //新增和编辑公用一个弹出对话框。 -->
+    <div class="temp-title" >
+        <!-- <p class="icon-box" align="center"> -->
+           <!-- <img class="icon-img" src="@/assets/images/set.svg" /> -->
+      <span class="name" width="80%">股票交易明细</span>
+        <!-- </p> -->
+      <el-button
+      size="small"
+      type="primary"
+      @click="OpenAddNewTradeDialog"
+      icon="el-icon-plus"> 新增 </el-button>
+<!-- @click="centerDialogVisible = true" -->
+    </div>
+    <el-table
+    :data="StockTradeData"
+    height="250"
+    border
+    style="width: 100%">
+      <el-table-column
+        prop="TradeCode"
+        label="股票代码"
+        width="150"
+        align="center">
+      </el-table-column>
+      <el-table-column
+        prop="TradeName"
+        label="股票名称"
+        width="150"
+        align="center">
+      </el-table-column>
+      <el-table-column
+        prop="TradeAmount"
+        label="交易数量"
+        width="150"
+        align="center">
+      </el-table-column>
+      <el-table-column
+        prop="TradePrice"
+        label="交易价格"
+        width="150"
+        align="center">
+      </el-table-column>
+      <el-table-column
+        prop="TradeDate"
+        label="日期"
+        align="center"
+        width="200"
+        value-format="yyyy-MM-dd HH:mm:ss"
+        >
+      </el-table-column>
+      <el-table-column label="操作" align="center">
+          <template slot-scope="scope">
+            <div class="operate-groups">
+              <el-button
+                type="primary"
+                size="mini"
+                icon="el-icon-edit-outline"
+                @click="handleEdit(scope.$index, scope.row)"
+                >编辑
+              </el-button>
+              <el-button
+                size="mini"
+                type="danger"
+                icon="el-icon-delete"
+                @click="handleDelete(scope.$index, scope.row)"
+                >删除
+              </el-button>
+            </div>
+          </template>
+      </el-table-column>
+
+  </el-table>
   </div>
 </template>
 
@@ -337,6 +309,19 @@
 export default {
   data() {
     return {
+      StockTradeData:[{
+        TradeCode: "",
+        TradeName: "",
+        TradeAmount: "",
+        TradePrice: "",
+        TradeDate: "",
+      }],
+      // dialog弹框名称
+      // titleName: {
+      //   add: '新增',
+      //   edit: '编辑'
+      // },
+      dialogStatus: '',
       stockPosition: [
         {
           Code: "000858",
@@ -353,15 +338,33 @@ export default {
           Tag: "中国银行"
         }
       ],
-      inputCode: "",
-      inputName: "",
-      inputPrice: "",
-      inputCost: "",
-      inputPosition: "",
-      inputCategory: "",
-      inputTag: "",
       centerDialogVisible: false,
-      rules: {},
+      title :'',
+      ruleForm: {
+          InputCode: '',
+          InputName:'',
+          BuyInPrice: '',
+          BuyInAmount: '',
+          BuyInDate:'',
+
+        },
+        // rules:{},弹框内容填写规则
+        rules: {
+          InputCode: [
+            { required: true, message: '请输入代码', trigger: 'blur' },
+            { min: 6, max: 6, message: '6位代码', trigger: 'blur' }
+          ],
+          BuyInPrice: [
+            { required: true, message: '请输入价格', trigger: 'change' }
+          ],
+          BuyInAmount: [
+            { required: true, message: '请输入数量', trigger: 'change' }
+          ],
+          date1: [
+            { type: 'date', required: true, message: '请选择日期', trigger: 'change' }
+          ],
+        },
+
       Market: [
         {
           label: "上证",
@@ -404,8 +407,11 @@ export default {
       value1: ""
     };
   },
+  //页面切换时从数据库刷新表单数据
   created() {
-    this.stockPosition = JSON.parse(localStorage.getItem("stockPosition"));
+   // stockPosition=[];
+    // this.stockPosition = JSON.parse(localStorage.getItem("stockPosition"));
+    this.StockTradeData = JSON.parse(localStorage.getItem("StockTradeData"));
   },
   methods: {
     resetDateFilter() {
@@ -431,13 +437,156 @@ export default {
       const property = column["property"];
       return row[property] === value;
     },
-    //限制字母输入
-    tonumbers() {
-      this.value = this.value.replace(/[^\d.]/g, "");
+    // 打开新增对话框
+    OpenAddNewTradeDialog(){
+      // this.ruleForm.InputCode="",
+      // this.ruleForm.InputName="",
+      // this.ruleForm.BuyInAmount="",
+      // this.ruleForm.BuyInPrice="",
+      this.ruleForm.BuyInDate= new Date();
+      // console.log(new Date())
+      // this.dialogStatus = "add";
+      // this.centerDialogVisible = this.centerDialogVisible || [];
+      this.centerDialogVisible = true
+      // this.ruleForm.title="新增股票交易"
     },
-    // 编辑
+    // 新增一条模板数据
+    AddNewTrade() {
+      // this.StockTradeData = this.StockTradeData || [];
+      this.StockTradeData.push({
+        TradeCode: this.ruleForm.InputCode,
+        TradeName: this.ruleForm.InputName,
+        TradeAmount:this.ruleForm.BuyInAmount,
+        TradePrice:this.ruleForm.BuyInPrice,
+        TradeDate:this.ruleForm.BuyInDate,
+      });
+      // console.log(TradeCode);
+      // 把交易界面数据存入localData
+
+      localStorage.setItem(
+        "StockTradeData",
+        JSON.stringify(this.StockTradeData)
+      );
+      this.centerDialogVisible = false;
+    },
+    dialogAddTemp() {
+      this.stockPosition = this.stockPosition || [];
+      this.stockPosition.push({
+          Code: this.InputCode,
+          Name: this.InputName,
+          Price: this.BuyInPrice,
+          Amount: this.BuyInAmount,
+          MarketValue: "",
+          Profit: "",
+          ProfitMargin: "%",
+          TodayProfit:"",
+          TodayMargin:"%",
+          Cost: this.inputCost,
+          Position: this.inputPosition,
+          Category: this.inputCategory,
+          Tag: this.inputTag
+      });
+      this.centerDialogVisible = false;
+
+    },
+    // 编辑录入交易记录表格的数据
     handleEdit($index, row) {
-      this.$set(this.stockPosition[$index], "editing", true);
+      // this.$set(this.StockTradeData[$index], "editing", true);
+      console.log($index,row);//这里可打印出每行的内容
+      this.centerDialogVisible = true;
+      let _row = row;
+      console.log("row is:",row)
+      // this.ruleForm = Object.assign({},row); // ruleForm是Dialog弹框的data，该方法没用
+      this.title=$index;
+      // this.ruleForm.title=$index
+      // this.ruleForm = row;
+      this.ruleForm.InputCode = row.TradeCode;
+      this.ruleForm.InputName = row.TradeName;
+      this.ruleForm.BuyInAmount = row.TradeAmount;
+      this.ruleForm.BuyInPrice = row.TradePrice;
+      this.ruleForm.BuyInDate = row.TradeDate;
+      this.ruleForm.id=0 //传递id这个很重要
+      console.log("row id:",row.id);
+    },
+    //删除录入交易记录表格的数据
+    handleDelete($index, row) {
+      this.$confirm("此操作将永久删除该条模板, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.StockTradeData.splice($index, 1);
+          localStorage.setItem(
+            "StockTradeData",
+            JSON.stringify(this.StockTradeData)
+          );
+          this.$message({
+            type: "success",
+            message: "删除成功!"
+          });
+        })
+        .catch(err => {
+          this.$message({
+            type: "error",
+            message: err
+          });
+        });
+    },
+    //关闭或者取消弹框
+    closeDialogVisible(){
+      this.$refs.ruleForm.resetFields();//element封装的方法,清空模态框的值
+      this.title="" //初始化title的值
+      this.ruleForm={//初始化addForm中的值
+      InputCode: '',
+      InputName:'',
+      BuyInPrice: '',
+      BuyInAmount: '',
+      BuyInDate:'',
+      id:'',
+      }
+      this.row=[]
+    },
+    //表单提交,点击确定按钮(确定添加或编辑)
+    submitForm() {
+      this.$refs.ruleForm.validate(valid => {
+        if (valid) {
+          let params = {
+            TradeCode: this.ruleForm.InputCode,
+            TradeName: this.ruleForm.InputName,
+            TradeAmount: this.ruleForm.BuyInAmount,
+            TradePrice: this.ruleForm.BuyInPrice,
+            TradeDate:this.ruleForm.BuyInDate,
+          };
+          //现在笨办法，通过设置ruleform.id的富余变量来判断是新增还是编辑，但是无法获取row.id,现在统一
+          if(this.ruleForm.id!==0){//当没有传过来id的时候,说明是添加,所以发送添加请求
+            this.AddNewTrade();
+            data => {
+                  // console.log(data, 1122);
+                  this.$message.success("新增成功！")
+                  this.dialogAddgsVisible = false
+                  this.handleCurrentChange(1);
+            }
+          }else{//发送编辑请求
+          // console.log(this.ruleForm.id)
+            this.row=params;
+            //现在的笨办法是靠this.title这个不用的变量来传递了index参数，实现把row的数据传递回表格的功能
+            //数据双向绑定功能抓紧研究。
+            this.$set(this.StockTradeData,this.title,this.row)
+            this.centerDialogVisible = false;
+            //还需要试验一下是否需要先存储在读取来实现刷新。
+            localStorage.setItem(
+              "StockTradeData",
+              JSON.stringify(this.StockTradeData)
+            );
+            console.log(this.StockTradeData)
+            this.StockTradeData = JSON.parse(localStorage.getItem("StockTradeData"));
+          }
+        }
+       });
+    },
+    resetForm(formName) {
+        this.$refs[formName].resetFields();
     },
     // 保存
     handleSave($index, row) {
@@ -453,26 +602,21 @@ export default {
           t.$message('不是整数，已经改为0');
           return 0;
         }
-
       };
 
       // 除掉所有字母
       row.Price = row.Price.replace(/[^\d.]/g, "");
       row.Cost = row.Cost.replace(/[^\d.-]/g, "");
       row.Position = row.Position.replace(/[^\d.]/g, "");
-
-
       // 变为数字字符串或者0
       row.Price = fn(row.Price, this);
       row.Cost = fn(row.Cost, this);
       row.Position = fi(row.Position, this);
-
       // 市值、总盈亏、总盈亏率计算
       row.MarketValue = Number(row.Price) * Number(row.Position);
       row.Profit = (Number(row.Price) - Number(row.Cost)) * Number(row.Position);
       const profitmargin = (Number(row.Price) / Number(row.Cost) - 1)*100
       row.ProfitMargin = profitmargin >= 0 ? profitmargin.toFixed(2) + "%" : "N/A",
-
       // TODO: daily profit and margin
       //
       row.TodayProfit = "TODO";
@@ -488,61 +632,6 @@ export default {
     // 取消
     handleCancel($index, row) {
       this.$set(this.stockPosition[$index], "editing", false);
-    },
-    // 新增一条模板数据
-    addTemp() {
-      this.stockPosition = this.stockPosition || [];
-      this.stockPosition.push({
-        MarketValue: "",
-        Category: "",
-        Datetime: "",
-        Tag: "",
-        editing: true,
-        center: true
-      });
-    },
-    dialogAddTemp() {
-      this.stockPosition = this.stockPosition || [];
-      this.stockPosition.push({
-          Code: this.inputCode,
-          Name: this.inputName,
-          MarketValue: "",
-          Profit: "",
-          ProfitMargin: "%",
-          TodayProfit:"",
-          TodayMargin:"%",
-          Price: this.inputPrice,
-          Cost: this.inputCost,
-          Position: this.inputPosition,
-          Category: this.inputCategory,
-          Tag: this.inputTag
-      });
-      this.centerDialogVisible = false;
-
-    },
-    handleDelete($index, row) {
-      this.$confirm("此操作将永久删除该条模板, 是否继续?", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      })
-        .then(() => {
-          this.stockPosition.splice($index, 1);
-          localStorage.setItem(
-            "stockPosition",
-            JSON.stringify(this.stockPosition)
-          );
-          this.$message({
-            type: "success",
-            message: "删除成功!"
-          });
-        })
-        .catch(err => {
-          this.$message({
-            type: "error",
-            message: err
-          });
-        });
     },
     getSummaries(param) {
       const { columns, data } = param;
@@ -594,6 +683,7 @@ export default {
 };
 </script>
 
+//需要更新调整页面布局。
 <style>
   .el-dropdown-link {
     cursor: pointer;
@@ -602,5 +692,4 @@ export default {
   .el-icon-arrow-down {
     font-size: 12px;
   }
-
 </style>

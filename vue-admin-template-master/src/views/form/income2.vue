@@ -190,10 +190,12 @@
         </template>
       </el-table-column>
     </el-table>
+    
     <div
     class="paginationClass"
     align="center"
     >
+
       <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -299,7 +301,11 @@ export default {
       return row.Tag === value
     },
     filterCategoary(value, row) {
-      console.log(value)
+
+      this.Categoary = value
+      //this.incomeTableData=this.incomeTableData.filter(Categoary,value)
+      console.log(this.incomeTableData.row)
+      
       return row.Categoary === value
     },
     filterHandler(value, row, column) {
@@ -413,38 +419,7 @@ export default {
 
       return sums
     },
-    //分页器
-    // handleSizeChange(val) {
-    //         console.log(`每页 ${val} 条`);
-    //       },
-    // handleCurrentChange(val) {
-    //         console.log(`当前页: ${val}`);
-    //       }
-    handleSizeChange1: function(pageSize) { // 每页条数切换
-            this.pageSize = pageSize
-            this.handleCurrentChange1(this.currentPage1);
-        },
-    handleCurrentChange1: function(currentPage) {//页码切换
-        this.currentPage1 = currentPage
-        this.currentChangePage(this.incomeTableData,currentPage)
-        },
-        //分页方法（重点）
 
-    current_change:function(currentPage){
-            this.currentPage = currentPage;
-          },
-
-
-    currentChangePage(list,currentPage) {
-          let from = (currentPage - 1) * this.pageSize;
-          let to = currentPage * this.pageSize;
-          this.incomeTableData = [];
-          for (; from < to; from++) {
-            if (list[from]) {
-              this.incomeTableData.push(list[from]);
-            }
-          }
-    },
 
   }
 }
