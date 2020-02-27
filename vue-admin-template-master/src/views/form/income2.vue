@@ -14,6 +14,7 @@
         >清除日期过滤器</el-button
       >
       -->
+      <!--  -->
       <el-button size="small" type="primary" @click="clearFilter"
         >清除所有过滤器</el-button
       >
@@ -190,7 +191,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <div
     class="paginationClass"
     align="center"
@@ -267,6 +268,7 @@ export default {
   //   },
   // },
   created() {
+    incomeTableData=[];
     this.incomeTableData = JSON.parse(localStorage.getItem("incomeTableData"))
   },
   methods: {
@@ -305,7 +307,7 @@ export default {
       this.Categoary = value
       //this.incomeTableData=this.incomeTableData.filter(Categoary,value)
       console.log(this.incomeTableData.row)
-      
+
       return row.Categoary === value
     },
     filterHandler(value, row, column) {

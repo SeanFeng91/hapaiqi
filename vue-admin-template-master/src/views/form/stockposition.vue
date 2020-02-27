@@ -310,11 +310,11 @@ export default {
   data() {
     return {
       StockTradeData:[{
-        TradeCode: "",
-        TradeName: "",
-        TradeAmount: "",
-        TradePrice: "",
-        TradeDate: "",
+        TradeCode: '000000',
+        TradeName: "奥",
+        TradeAmount: '200',
+        TradePrice: '10',
+        TradeDate: '2020-02-03 11:11:11',
       }],
       // dialog弹框名称
       // titleName: {
@@ -410,6 +410,7 @@ export default {
   //页面切换时从数据库刷新表单数据
   created() {
    // stockPosition=[];
+   StockTradeData=[];
     // this.stockPosition = JSON.parse(localStorage.getItem("stockPosition"));
     this.StockTradeData = JSON.parse(localStorage.getItem("StockTradeData"));
   },
@@ -579,7 +580,7 @@ export default {
               "StockTradeData",
               JSON.stringify(this.StockTradeData)
             );
-            console.log(this.StockTradeData)
+            // console.log(this.StockTradeData)
             this.StockTradeData = JSON.parse(localStorage.getItem("StockTradeData"));
           }
         }
